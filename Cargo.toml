@@ -1,13 +1,11 @@
 [package]
-name = "macroquad"
+name = "macroquad-ply"
 version = "0.4.14"
 authors = ["not-fl3 <not.fl3@gmail.com>"]
 edition = "2021"
 homepage = "https://github.com/not-fl3/macroquad"
-repository = "https://github.com/not-fl3/macroquad"
-description = """
-Simple and easy to use graphics library
-"""
+repository = "https://github.com/TheRedDeveloper/macroquad-fix"
+description = "Temporary fork of macroquad with fixes for ply-engine. Do not depend on this directly."
 readme="README.md"
 license = "MIT OR Apache-2.0"
 
@@ -27,7 +25,7 @@ opt-level = 3
 all-features = true
 
 [dependencies]
-miniquad = { version = "=0.4.8", features = ["log-impl"], git = "https://github.com/TheRedDeveloper/miniquad-fix" }
+miniquad = { version = "=0.4.8", features = ["log-impl"], package = "miniquad-ply" }
 quad-rand = "0.2.3"
 glam = { version = "0.27", features = ["scalar-math"] }
 image = { version = "0.24", default-features = false, features = ["png", "tga"] }
@@ -37,19 +35,6 @@ backtrace = { version = "0.3.60", optional = true }
 log = { version = "0.4", optional = true }
 quad-snd = { version = "0.2", optional = true }
 
-[dev-dependencies]
-macroquad-particles = { path = "./particles" }
-macroquad-tiled = { path = "./tiled" }
-macroquad-profiler = { path = "./profiler" }
-macroquad-platformer = { path = "./physics-platformer" }
 
-# workaround to fix the examples
-# this allows to use macroquad-particles in examples without two versions of macroquad
-[patch.crates-io]
-macroquad = { path = './' }
 
-#quad-snd = {path = '../quad-snd'}
-#miniquad = { path = '../miniquad' }
-#miniquad = { git = "https://github.com/not-fl3/miniquad", branch = "msaa_render_texture" }
-#quad-gl = {path = './quad-gl'}
 
