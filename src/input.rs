@@ -138,7 +138,7 @@ pub fn is_key_released(key_code: KeyCode) -> bool {
     context.keys_released.contains(&key_code)
 }
 
-/// Detect if any key is being preseed
+/// Detect if any key is being pressed
 pub fn is_any_key_down() -> bool {
     let context = get_context();
     context.keys_down.len() > 0
@@ -149,7 +149,7 @@ pub fn is_any_key_down() -> bool {
 pub fn get_char_pressed() -> Option<char> {
     let context = get_context();
 
-    context.chars_pressed_queue.pop()
+    context.chars_pressed_queue.pop_front()
 }
 
 /// Return the current IME preedit text, if any.
@@ -174,7 +174,7 @@ pub fn get_ime_commit() -> Option<ImeCommit> {
 pub(crate) fn get_char_pressed_ui() -> Option<char> {
     let context = get_context();
 
-    context.chars_pressed_ui_queue.pop()
+    context.chars_pressed_ui_queue.pop_front()
 }
 
 /// Return the last pressed key.
@@ -204,6 +204,8 @@ pub fn clear_input_queue() {
     let context = get_context();
     context.chars_pressed_queue.clear();
     context.chars_pressed_ui_queue.clear();
+    context.mouse_pressed.clear();
+    context.keys_pressed.clear();
 }
 
 /// Detect if the button is being pressed

@@ -38,7 +38,7 @@
 
 use miniquad::*;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::future::Future;
 use std::panic::AssertUnwindSafe;
 use std::pin::Pin;
@@ -189,8 +189,8 @@ struct Context {
     mouse_pressed: HashSet<MouseButton>,
     mouse_released: HashSet<MouseButton>,
     touches: HashMap<u64, input::Touch>,
-    chars_pressed_queue: Vec<char>,
-    chars_pressed_ui_queue: Vec<char>,
+    chars_pressed_queue: VecDeque<char>,
+    chars_pressed_ui_queue: VecDeque<char>,
     ime_preedit: String,
     ime_commit_queue: Vec<Option<String>>,
     mouse_position: Vec2,
@@ -328,8 +328,8 @@ impl Context {
             keys_down: HashSet::new(),
             keys_pressed: HashSet::new(),
             keys_released: HashSet::new(),
-            chars_pressed_queue: Vec::new(),
-            chars_pressed_ui_queue: Vec::new(),
+            chars_pressed_queue: VecDeque::new(),
+            chars_pressed_ui_queue: VecDeque::new(),
             mouse_down: HashSet::new(),
             mouse_pressed: HashSet::new(),
             mouse_released: HashSet::new(),
@@ -687,8 +687,8 @@ impl EventHandler for Stage {
     fn char_event(&mut self, character: char, modifiers: KeyMods, repeat: bool) {
         let context = get_context();
 
-        context.chars_pressed_queue.push(character);
-        context.chars_pressed_ui_queue.push(character);
+        context.chars_pressed_queue.push_back(character);
+        context.chars_pressed_ui_queue.push_back(character);
 
         context.input_events.iter_mut().for_each(|arr| {
             arr.push(MiniquadInputEvent::Char {
@@ -824,10 +824,17 @@ impl EventHandler for Stage {
             get_context().frame_time = date::now() - get_context().last_frame_time;
             get_context().last_frame_time = date::now();
 
+            // glFinish waits until the drawing is done. See https://registry.khronos.org/OpenGL-Refpages/gl4/html/glFinish.xhtml.
+            // Some drivers do this by a busy loop which increases CPU usage to close to 100%.
+            // For discussion see https://github.com/not-fl3/macroquad/issues/275.
+            // If telemetry is enabled it kinda makes sense to call glFinish so that the telemetry
+            // timing is more representative of the time it took to draw. But for general use and
+            // in particular when double buffer is used it's not recommended to call glFinish,
+            // unless we use SyncObjects or we have to wait for other async operations to finish.
+            // See https://wikis.khronos.org/opengl/Common_Mistakes#glFinish_and_glFlush.
             #[cfg(any(target_arch = "wasm32", target_os = "linux"))]
-            {
+            if telemetry::is_enabled() {
                 let _z = telemetry::ZoneGuard::new("glFinish/glFLush");
-
                 unsafe {
                     miniquad::gl::glFlush();
                     miniquad::gl::glFinish();
